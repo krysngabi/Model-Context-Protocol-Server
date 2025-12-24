@@ -16,14 +16,10 @@ public class McpServerApplication {
 
 //	@Bean
 //	public List<ToolCallback> mcpTools(      // ← single bean name, can be anything
-//											 CourseService courseService,
-//											 UserService userService
+//											 CourseService courseService
 //	) {
-//		ToolCallback courseCallback = ToolCallbacks.from(courseService);
 //		return List.of(
-//				ToolCallbacks.from(courseService),
-//				ToolCallbacks.from(userService)
-//				// Add more here later: ToolCallbacks.from(paymentService), etc.
+//				ToolCallbacks.from(courseService)
 //		);
 //	}
 }
