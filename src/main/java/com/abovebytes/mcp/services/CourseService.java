@@ -1,7 +1,11 @@
 package com.abovebytes.mcp.services;
 
 import com.abovebytes.mcp.entities.Course;
+import com.abovebytes.mcp.models.Level;
+import com.abovebytes.mcp.models.Provider;
 import com.abovebytes.mcp.repositories.CourseRepository;
+import com.abovebytes.mcp.utils.CourseUtils;
+import io.modelcontextprotocol.spec.McpSchema;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,9 +13,9 @@ import org.springaicommunity.mcp.annotation.McpResource;
 import org.springaicommunity.mcp.annotation.McpTool;
 import org.springaicommunity.mcp.annotation.McpToolParam;
 import org.springframework.stereotype.Service;
-
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class CourseService {
@@ -27,28 +31,38 @@ public class CourseService {
        RESOURCE METHODS
        ============================= */
 
-    @McpResource(uri = "courses://list", name = "All Courses")
-    public List<Course> listCoursesResource() {
-        log.info("McpResource called: courses://list");
+    /* =============================
+   COURSE TOOLS (READ)
+   ============================= */
+
+    @McpTool(name = "courses_list", description = "Return all courses")
+    public List<Course> listCoursesTool() {
+        log.info("McpTool called: courses_list");
         return courseRepository.findAll();
     }
 
-    @McpResource(uri = "courses://count", name = "Total number of courses")
-    public long countCoursesResource() {
-        log.info("McpResource called: courses://count");
+    @McpTool(name = "courses_count", description = "Return the total number of courses")
+    public long countCoursesTool() {
+        log.info("McpTool called: courses_count");
         return courseRepository.count();
     }
 
-    @McpResource(uri = "courses://by-title/{title}", name = "Course by exact title")
-    public Course getCourseByTitleResource(@McpToolParam(description = "Exact title") String title) {
-        log.info("McpResource called: courses://by-title/{}", title);
+    @McpTool(name = "courses_get_by_id", description = "Get a course by its ID")
+    public Course getCourseByIdTool(@McpToolParam(description = "Course ID") Long id) {
+        log.info("McpTool called: courses_get_by_id | id={}", id);
+        return courseRepository.findById(id).orElse(null);
+    }
+
+    @McpTool(name = "courses_get_by_title", description = "Get a course by its title")
+    public Course getCourseByTitleTool(@McpToolParam(description = "Course title") String title) {
+        log.info("McpTool called: courses_get_by_title | title={}", title);
         return courseRepository.findByCourseNameIgnoreCase(title).orElse(null);
     }
 
-    @McpResource(uri = "courses://search-description/{text}", name = "Search course by description")
-    public Course searchByDescriptionResource(@McpToolParam(description = "Text to search") String text) {
-        log.info("McpResource called: courses://search-description/{}", text);
-        return courseRepository.findFirstByDescriptionContainingIgnoreCase(text).orElse(null);
+    @McpTool(name = "courses_search_by_description", description = "Search courses by description")
+    public List<Course> searchByDescriptionTool(@McpToolParam(description = "Text to search") String text) {
+        log.info("McpTool called: courses_search_by_description | text={}", text);
+        return courseRepository.findFirstByDescriptionContainingIgnoreCase(text).stream().toList();
     }
 
     /* =============================
@@ -57,11 +71,31 @@ public class CourseService {
 
     @McpTool(name = "courses_add", description = "Add a new course to the catalog")
     public Course addCourse(@McpToolParam(description = "Course title") String title,
-                            @McpToolParam(description = "Public URL of the course") String url) {
+                            @McpToolParam(description = "Course's description") String description,
+                            @McpToolParam(description = "Course's provider") Provider provider,
+                            @McpToolParam(description = "Course's level") Level level) {
+        String url = CourseUtils.randomCourseUrl(provider.name());
         log.info("McpTool called: courses_add | title={}, url={}", title, url);
+
+        Course found = courseRepository.findByCourseNameIgnoreCaseAndProviderAndLevel(title, provider, level).orElse(null);
+        if (found != null) {
+            throw new IllegalStateException(String.format(
+                    "Cannot add course: A course with title '%s', provider '%s', and level '%s' already exists (ID: %d)",
+                    found.getCourseName(),
+                    found.getProvider(),
+                    found.getLevel(),
+                    found.getCourseId()
+            ));
+        }
+
         Course course = Course.builder()
                 .courseName(title)
                 .courseUrl(url)
+                .provider(provider)
+                .description(description)
+                .durationMinutes(CourseUtils.randomDurationMinutes())
+                .level(level)
+                .rating(CourseUtils.randomRating())
                 .active(true)
                 .deleted(false)
                 .createdAt(LocalDateTime.now())
@@ -118,3 +152,23 @@ public class CourseService {
         }
     }
 }
+
+/* Get course by title */
+//@McpResource(uri = "courses://get-by-title/{title}", name = "Get course by title")
+//public McpSchema.TextResourceContents getCourseByTitleResource(String title) {
+//    return courseRepository.findByCourseNameIgnoreCase(title)
+//            .map(course -> new McpSchema.TextResourceContents(
+//                    "courses://get-by-title/" + course.getCourseId(),
+//                    "application/json",
+//                    String.format("{\"id\":%d,\"name\":\"%s\",\"url\":\"%s\",\"active\":%b}",
+//                            course.getCourseId(),
+//                            course.getCourseName(),
+//                            course.getCourseUrl(),
+//                            course.getActive())
+//            ))
+//            .orElse(new McpSchema.TextResourceContents(
+//                    "courses://get-by-title/none",
+//                    "application/json",
+//                    "{}"
+//            ));
+//}

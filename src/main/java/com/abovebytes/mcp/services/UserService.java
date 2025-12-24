@@ -3,16 +3,15 @@ package com.abovebytes.mcp.services;
 import com.abovebytes.mcp.entities.User;
 import com.abovebytes.mcp.models.RoleValue;
 import com.abovebytes.mcp.repositories.UserRepository;
+import io.modelcontextprotocol.spec.McpSchema;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springaicommunity.mcp.annotation.McpResource;
 import org.springaicommunity.mcp.annotation.McpTool;
 import org.springaicommunity.mcp.annotation.McpToolParam;
 import org.springframework.stereotype.Service;
-
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -61,22 +60,32 @@ public class UserService {
     /* ==========================
        RESOURCE METHODS (READ-ONLY)
        ========================== */
+/* =============================
+   USER TOOLS (READ)
+   ============================= */
 
-    @McpResource(uri = "users://list", name = "List all users")
-    public List<User> listUsersResource() {
-        log.info("McpResource called: users://list");
+    @McpTool(name = "users_list", description = "Return all users")
+    public List<User> listUsersTool() {
+        log.info("McpTool called: users_list");
         return userRepository.findAll();
     }
 
-    @McpResource(uri = "users://count-active", name = "Count active users")
-    public long countActiveUsersResource() {
-        log.info("McpResource called: users://count-active");
+    @McpTool(name = "users_count_active", description = "Return the total number of active users")
+    public long countActiveUsersTool() {
+        log.info("McpTool called: users_count_active");
         return userRepository.countByActiveTrue();
     }
 
-    @McpResource(uri = "users://by-email/{email}", name = "Get user by email")
-    public User getUserByEmailResource(@McpToolParam(description = "User email") String email) {
-        log.info("McpResource called: users://by-email/{}", email);
+    @McpTool(name = "users_get_by_email", description = "Get a user by email")
+    public User getUserByEmailTool(@McpToolParam(description = "User email") String email) {
+        log.info("McpTool called: users_get_by_email | email={}", email);
         return userRepository.findByEmailIgnoreCase(email).orElse(null);
     }
+
+    @McpTool(name = "users_get_by_id", description = "Get a user by ID")
+    public User getUserByIdTool(@McpToolParam(description = "User ID") Long id) {
+        log.info("McpTool called: users_get_by_id | id={}", id);
+        return userRepository.findById(id).orElse(null);
+    }
+
 }

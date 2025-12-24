@@ -7,5 +7,6 @@ public enum RoleValue {
 
     STUDENT,
     INSTRUCTOR,
-    ADMIN
+    ADMIN,
+    UNKNOWN
 }

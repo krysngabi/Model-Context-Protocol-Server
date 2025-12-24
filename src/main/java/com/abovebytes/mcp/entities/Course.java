@@ -1,5 +1,8 @@
 package com.abovebytes.mcp.entities;
 
+import com.abovebytes.mcp.models.Level;
+import com.abovebytes.mcp.models.Provider;
+import com.abovebytes.mcp.models.RoleValue;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
@@ -43,14 +46,16 @@ public class Course implements Serializable {
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
-    @Column(name = "provider", length = 100)
-    private String provider; // e.g. YouTube, Udemy, FreeCodeCamp
+    @Enumerated(EnumType.STRING)
+    @Column(name = "provider")
+    private Provider provider;
 
     @Column(name = "language", length = 10)
     private String language; // e.g. en, fr
 
-    @Column(name = "level", length = 50)
-    private String level; // Beginner, Intermediate, Advanced
+    @Enumerated(EnumType.STRING)
+    @Column(name = "level")
+    private Level level;
 
     @Column(name = "duration_minutes")
     private Integer durationMinutes;
