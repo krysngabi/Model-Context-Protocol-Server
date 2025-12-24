@@ -1,0 +1,7 @@
+/Users/krysngabi/Library/Java/JavaVirtualMachines/corretto-24.0.2/Contents/Home/bin/java \
+-jar /Users/krysngabi/Documents/IdeaProjects/dv-courses-mcp/target/courses-0.0.1-SNAPSHOT.jar
+
+What tools are available?
+What tools are available from test-mcp-server?
+Call dv_get_courses
+Add a course titled 'MCP Internals' with URL https://example.com”
